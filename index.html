@@ -52,12 +52,12 @@ import { getFirestore, doc, getDoc, setDoc, onSnapshot }
                              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FB_CFG = {
-  apiKey:            "AIzaSyCSzKiHS1Mwlw6OfABUHYK1Dfi4YO_9aAM",
-  authDomain:        "biltjek-af1c6.firebaseapp.com",
-  projectId:         "biltjek-af1c6",
-  storageBucket:     "biltjek-af1c6.firebasestorage.app",
-  messagingSenderId: "129179334692",
-  appId:             "1:129179334692:web:509706136fc906a648c0b1"
+  apiKey:            "AIzaSyDCxGOtkgg5_9o_07ugztHvPLB2JCiFtlQ",
+  authDomain:        "tml-biltjek.firebaseapp.com",
+  projectId:         "tml-biltjek",
+  storageBucket:     "tml-biltjek.firebasestorage.app",
+  messagingSenderId: "35306695911",
+  appId:             "1:35306695911:web:90ff25397a111a17a88642"
 };
 
 const COLS = ['contracts','vehicles','drivers','checks','users','settings'];
@@ -363,8 +363,6 @@ tr:hover td{background:var(--bg3);}
   .bt-pr-photos{display:flex;flex-wrap:wrap;gap:8px;}
 }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -585,7 +583,6 @@ tr:hover td{background:var(--bg3);}
       <div class="flex gap-8 mt-16" style="flex-wrap:wrap">
         <button class="btn btn-blue" onclick="printContract()">🖨️ Print</button>
         <button class="btn btn-green" onclick="emailContract()">📧 Send på mail</button>
-        <button class="btn" style="background:#25D366;color:#fff" onclick="whatsappContract()">💬 Send via WhatsApp</button>
         <button class="btn btn-ghost" onclick="exportContract()">⬇️ Eksporter JSON</button>
         <button class="btn btn-accent" onclick="resetWizard()">+ Ny Kontrakt</button>
       </div>
@@ -675,7 +672,7 @@ tr:hover td{background:var(--bg3);}
     <div class="page-title">Skaderapport</div>
     <div class="page-sub">Oversigt over registrerede skader</div>
     <div class="flex gap-8" style="margin-bottom:16px">
-      <button class="btn btn-blue btn-sm" onclick="printSkaderapport()">🖨 Print rapport</button>
+      <button class="btn btn-blue btn-sm" onclick="window.print()">🖨 Print rapport</button>
     </div>
     <div id="rapportContent"></div>
   </div>
@@ -826,7 +823,6 @@ tr:hover td{background:var(--bg3);}
     <div class="modal-actions flex" style="flex-wrap:wrap;gap:8px">
       <button class="btn btn-blue btn-sm" onclick="printContractById()">🖨️ Print</button>
       <button class="btn btn-green btn-sm" onclick="emailContractById()">📧 Send mail</button>
-      <button class="btn btn-sm" style="background:#25D366;color:#fff" onclick="whatsappContractById()">💬 WhatsApp</button>
       <button class="btn btn-red btn-sm" id="returnBtn" onclick="returnVehicle()">✅ Afslut/Aflever</button>
       <button class="btn btn-ghost btn-sm" onclick="closeModal('contractDetailModal')">Luk</button>
     </div>
@@ -1088,7 +1084,7 @@ function activateApp(user){
   document.getElementById('app').style.display='block';
   document.getElementById('currentUserLabel').textContent=user.name||user.username;
   if(user.role==='admin') document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
-  loadSettings(); renderDashboard(); renderVehicles(); renderContracts(); setTimeout(btMigrateOldPhotos, 3000);
+  loadSettings(); renderDashboard(); renderVehicles(); renderContracts();
   renderDrivers(); populateDriverSelect(); populateVehicleSelect(); btLoadChecks();
 }
 function doLogin(){
@@ -1360,21 +1356,14 @@ function validateDates(){
 function initSignaturePads(){
   ['sigLessor','sigLessee'].forEach(id=>{
     const c=document.getElementById(id),ctx=c.getContext('2d');
-    function resizeCanvas(){
-      const r=c.getBoundingClientRect();
-      if(r.width>0){c.width=r.width;c.height=r.height||120;}
-      ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
-    }
-    resizeCanvas();
     sigCtx[id]=ctx;drawing[id]=false;
-    function getPos(e){const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
-    function getTouchPos(e){const r=c.getBoundingClientRect(),t=e.touches[0];return{x:t.clientX-r.left,y:t.clientY-r.top};}
-    c.addEventListener('mousedown',e=>{resizeCanvas();drawing[id]=true;ctx.beginPath();const p=getPos(e);ctx.moveTo(p.x,p.y);});
-    c.addEventListener('mousemove',e=>{if(!drawing[id])return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+    ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.lineCap='round';
+    c.addEventListener('mousedown',e=>{drawing[id]=true;ctx.beginPath();const r=c.getBoundingClientRect();ctx.moveTo(e.clientX-r.left,e.clientY-r.top);});
+    c.addEventListener('mousemove',e=>{if(!drawing[id])return;const r=c.getBoundingClientRect();ctx.lineTo(e.clientX-r.left,e.clientY-r.top);ctx.stroke();});
     c.addEventListener('mouseup',()=>drawing[id]=false);
     c.addEventListener('mouseleave',()=>drawing[id]=false);
-    c.addEventListener('touchstart',e=>{e.preventDefault();resizeCanvas();drawing[id]=true;ctx.beginPath();const p=getTouchPos(e);ctx.moveTo(p.x,p.y);},{passive:false});
-    c.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing[id])return;const p=getTouchPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+    c.addEventListener('touchstart',e=>{e.preventDefault();drawing[id]=true;ctx.beginPath();const r=c.getBoundingClientRect(),t=e.touches[0];ctx.moveTo(t.clientX-r.left,t.clientY-r.top);},{passive:false});
+    c.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing[id])return;const r=c.getBoundingClientRect(),t=e.touches[0];ctx.lineTo(t.clientX-r.left,t.clientY-r.top);ctx.stroke();},{passive:false});
     c.addEventListener('touchend',()=>drawing[id]=false);
   });
 }
@@ -1386,20 +1375,7 @@ function clearSig(id){const c=document.getElementById(id);c.getContext('2d').cle
 function handlePhotos(e){
   Array.from(e.target.files).forEach(f=>{
     const r=new FileReader();
-    r.onload=ev=>{
-      // Komprimer billede til max 1200px og 70% kvalitet for at undgå localStorage overflow
-      const img=new Image();
-      img.onload=()=>{
-        const MAX=1200;
-        let w=img.width,h=img.height;
-        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-        const cvs=document.createElement('canvas');cvs.width=w;cvs.height=h;
-        cvs.getContext('2d').drawImage(img,0,0,w,h);
-        const compressed=cvs.toDataURL('image/jpeg',0.70);
-        contractPhotos.push(compressed);renderPhotoGrid();
-      };
-      img.src=ev.target.result;
-    };
+    r.onload=ev=>{contractPhotos.push(ev.target.result);renderPhotoGrid();};
     r.readAsDataURL(f);
   });
   e.target.value='';
@@ -1470,14 +1446,8 @@ function finalizeContract(){
     createdBy:currentUser?currentUser.username:'admin',
   };
   const updated=vehicles.map(v=>v.id===vid?{...v,status:'rented',currentContract:id}:v);
-  try{
-    setData('vehicles',updated);
-    const contracts=getData('contracts');contracts.push(contract);setData('contracts',contracts);
-  }catch(err){
-    showToast('Fejl ved gemning: '+err.message,'error');
-    console.error('finalizeContract setData error:',err);
-    return;
-  }
+  setData('vehicles',updated);
+  const contracts=getData('contracts');contracts.push(contract);setData('contracts',contracts);
   currentContractData=contract;
   document.getElementById('contractPreview').innerHTML=buildContractHTML(contract);
   goStep(7);
@@ -1575,12 +1545,11 @@ function fmtD(s){if(!s)return'—';const d=new Date(s);if(isNaN(d))return s;retu
 // ════════════════════════════════════════════════
 function printContract(){
   const html=document.getElementById('printArea')?document.getElementById('printArea').outerHTML:buildContractHTML(currentContractData);
-  const fullHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%}table td,table th{border:1px solid #ccc;padding:6px;font-size:12px}h2{text-align:center}.sig-block{display:flex;gap:24px;margin-top:24px}.sig-line{flex:1;border-top:1px solid #333;padding-top:6px}</style></head><body>'+html+'<scr'+'ipt>window.onload=function(){window.print()}<'+'/scr'+'ipt></body></html>';
-  const blob=new Blob([fullHtml],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  const w=window.open('','_blank');
+  if(!w){showToast('Tillad popups for at printe','error');return;}
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%}table td,table th{border:1px solid #ccc;padding:6px;font-size:12px}h2{text-align:center}.sig-block{display:flex;gap:24px;margin-top:24px}.sig-line{flex:1;border-top:1px solid #333;padding-top:6px}</style></head><body>${html}<script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close();
 }
 function printContractById(){
   const c=getData('contracts').find(x=>x.id===currentContractId);
@@ -1590,85 +1559,32 @@ function printContractById(){
 function emailContract(){
   const c=currentContractData;
   if(!c||!c.driver)return;
+  // Build printable HTML and open in new window with print dialog for PDF saving
   const html=buildContractHTML(c);
-  // Åbn print-dialog via blob URL (virker på mobil uden popup-blokering)
-  const style='body{font-family:Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%}table td,table th{border:1px solid #ccc;padding:6px;font-size:11px}h2{text-align:center}.sig-block{display:flex;gap:24px;margin-top:24px}.sig-line{flex:1;border-top:1px solid #333;padding-top:6px}.contract-paper{padding:20px}';
-  const fullHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+style+'</style></head><body>'+html+'</body></html>';
-  const blob=new Blob([fullHtml],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),10000);
-  // Åbn mail-klient separat
-  const mailBody=encodeURIComponent('Kære '+c.driver.name+',\n\nVedhæft venligst kontrakten.\n\nKontraktnummer: '+c.num+'\nBil: '+c.vehicle.brand+' '+c.vehicle.model+' ('+c.vehicle.reg+')\nPeriode: '+fmtDT(c.rental.pickup)+' - '+fmtDT(c.rental.return)+'\n\nMed venlig hilsen\n'+c.lessor.name);
-  const mailSubject=encodeURIComponent('Udlejningskontrakt '+c.num);
-  setTimeout(()=>{window.location.href='mailto:'+encodeURIComponent(c.driver.email)+'?subject='+mailSubject+'&body='+mailBody;},500);
-  showToast('Kontrakt åbnet — gem som PDF og vedhæft i mail','success');
+  const printWin=window.open('','_blank');
+  if(!printWin){showToast('Tillad popups for at sende kontrakt','error');return;}
+  printWin.document.open();
+  printWin.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>body{font-family:Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%}
+    table td,table th{border:1px solid #ccc;padding:6px;font-size:11px}h2{text-align:center}
+    .sig-block{display:flex;gap:24px;margin-top:24px}.sig-line{flex:1;border-top:1px solid #333;padding-top:6px}
+    .contract-paper{padding:20px}
+    </style>
+    <script>
+      window.onload = function() {
+        window.print();
+        setTimeout(function() {
+          window.location.href = 'mailto:${encodeURIComponent(c.driver.email)}?subject=${encodeURIComponent('Udlejningskontrakt '+c.num)}&body=${encodeURIComponent('Kære '+c.driver.name+',\n\nVedhæft venligst den PDF du lige har gemt/printet.\n\nKontraktnummer: '+c.num+'\nBil: '+c.vehicle.brand+' '+c.vehicle.model+' ('+c.vehicle.reg+')\nPeriode: '+fmtDT(c.rental.pickup)+' - '+fmtDT(c.rental.return)+'\n\nMed venlig hilsen\n'+c.lessor.name)}';
+        }, 2000);
+      };
+    <\/script>
+    </head><body>${html}</body></html>`);
+  printWin.document.close();
+  showToast('Kontrakt åbnet til print/PDF — gem som PDF og vedhæft i mail','success');
 }
 function emailContractById(){
   const c=getData('contracts').find(x=>x.id===currentContractId);
   if(c){currentContractData=c;emailContract();}
-}
-
-async function whatsappContract(){
-  const c=currentContractData;
-  if(!c||!c.driver){showToast('Ingen kontrakt at sende','error');return;}
-  showToast('Genererer PDF...','success');
-  try{
-    // Render contract HTML to PDF via html2canvas + jsPDF
-    const {jsPDF}=window.jspdf;
-    const contractEl=document.getElementById('printArea')||createTempContractEl(c);
-    const canvas=await html2canvas(contractEl,{scale:2,useCORS:true,backgroundColor:'#ffffff'});
-    const imgData=canvas.toDataURL('image/jpeg',0.92);
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const pdfW=pdf.internal.pageSize.getWidth();
-    const pdfH=(canvas.height*pdfW)/canvas.width;
-    // Split across pages if needed
-    const pageH=pdf.internal.pageSize.getHeight();
-    let yPos=0;
-    while(yPos<pdfH){
-      if(yPos>0)pdf.addPage();
-      pdf.addImage(imgData,'JPEG',0,-yPos,pdfW,pdfH);
-      yPos+=pageH;
-    }
-    const pdfBlob=pdf.output('blob');
-    const pdfFile=new File([pdfBlob],'Kontrakt-'+c.num+'.pdf',{type:'application/pdf'});
-    // Try Web Share API (works on mobile - shows native share sheet incl. WhatsApp)
-    if(navigator.canShare&&navigator.canShare({files:[pdfFile]})){
-      await navigator.share({
-        files:[pdfFile],
-        title:'Udlejningskontrakt '+c.num,
-        text:'Kære '+c.driver.name+', vedhæftet er din udlejningskontrakt '+c.num+'.'
-      });
-    } else {
-      // Fallback: download PDF + åbn WhatsApp chat
-      const url=URL.createObjectURL(pdfFile);
-      const a=document.createElement('a');a.href=url;a.download='Kontrakt-'+c.num+'.pdf';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url),10000);
-      // Åbn WhatsApp med besked (uden fil - ikke understøttet i browser)
-      const phone=(c.driver.phone||'').replace(/\D/g,'');
-      const msg=encodeURIComponent('Hej '+c.driver.name+', jeg har netop downloadet din udlejningskontrakt '+c.num+'. Vedhæft venligst filen i denne chat.');
-      const waUrl=phone?'https://wa.me/45'+phone+'?text='+msg:'https://wa.me/?text='+msg;
-      setTimeout(()=>window.open(waUrl,'_blank'),800);
-      showToast('PDF downloadet — send den manuelt via WhatsApp','success');
-    }
-  }catch(err){
-    console.error('WhatsApp PDF error:',err);
-    showToast('Fejl ved PDF-generering: '+err.message,'error');
-  }
-}
-function createTempContractEl(c){
-  const div=document.createElement('div');
-  div.innerHTML=buildContractHTML(c);
-  div.style.cssText='position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px;font-family:Arial,sans-serif';
-  document.body.appendChild(div);
-  setTimeout(()=>document.body.removeChild(div),5000);
-  return div;
-}
-function whatsappContractById(){
-  const c=getData('contracts').find(x=>x.id===currentContractId);
-  if(c){currentContractData=c;whatsappContract();}
 }
 function exportContract(){dlJSON(currentContractData,'kontrakt-'+currentContractData.num+'.json');}
 
@@ -2090,7 +2006,6 @@ function resetWizard(){
 //  MODAL
 // ════════════════════════════════════════════════
 function openModal(id){document.getElementById(id).classList.add('open');}
-
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))closeModal(e.target.id);});
 
@@ -2107,7 +2022,6 @@ function showToast(msg,type=''){
 //  BILTJEK — IMAGE CLICK DAMAGE
 // ════════════════════════════════════════════════
 let btCurrentDamages=[],btCurrentPhotos=[],btEditingId=null;
-let _btAllChecks=[]; // Cache — undgår gentagende localStorage-læsning
 let btPendingPin=null;
 let btChecks={};
 let btCurrentBiltype='kassevogn';
@@ -2212,19 +2126,7 @@ function setCheck(key,val,btn){
 function btHandlePhotos(e){
   Array.from(e.target.files).forEach(f=>{
     const r=new FileReader();
-    r.onload=ev=>{
-      const img=new Image();
-      img.onload=()=>{
-        const MAX=1200;
-        let w=img.width,h=img.height;
-        if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-        const cvs=document.createElement('canvas');cvs.width=w;cvs.height=h;
-        cvs.getContext('2d').drawImage(img,0,0,w,h);
-        btCurrentPhotos.push(cvs.toDataURL('image/jpeg',0.70));
-        btRenderPhotos();
-      };
-      img.src=ev.target.result;
-    };
+    r.onload=ev=>{btCurrentPhotos.push(ev.target.result);btRenderPhotos();};
     r.readAsDataURL(f);
   });
   e.target.value='';
@@ -2382,44 +2284,9 @@ function btDeleteCheck(id){
   btLoadChecks();renderDashboard();showToast('Biltjek slettet','success');
 }
 
-function btMigrateOldPhotos(){
-  // Engangs-migration: komprimér store fotos i eksisterende biltjek
-  const checks=getData('checks');
-  if(checks.length)_btAllChecks=checks; // Opdater cache mens vi er i gang
-  let changed=false;
-  const MAX=1200,Q=0.70;
-  let pending=0;
-  checks.forEach((c,ci)=>{
-    if(!c.photos||!c.photos.length)return;
-    c.photos.forEach((src,pi)=>{
-      // Hvis base64 er over ~400KB (ca. 600KB base64) - komprimer
-      if(src&&src.length>600000){
-        pending++;
-        const img=new Image();
-        img.onload=()=>{
-          let w=img.width,h=img.height;
-          if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
-          const cvs=document.createElement('canvas');cvs.width=w;cvs.height=h;
-          cvs.getContext('2d').drawImage(img,0,0,w,h);
-          checks[ci].photos[pi]=cvs.toDataURL('image/jpeg',Q);
-          changed=true;
-          pending--;
-          if(pending===0&&changed){
-            try{setData('checks',checks);console.log('Biltjek fotos komprimeret og gemt');}
-            catch(e){console.warn('Kunne ikke gemme komprimerede fotos:',e);}
-          }
-        };
-        img.src=src;
-      }
-    });
-  });
-}
-
 function btLoadChecks(){
   const q=(document.getElementById('btSearch')||{}).value||'';
-  const allChecks=getData('checks');
-  _btAllChecks=allChecks; // Opdater global cache
-  let list=allChecks;
+  let list=getData('checks');
   if(q)list=list.filter(c=>JSON.stringify(c).toLowerCase().includes(q.toLowerCase()));
   list=list.slice().reverse();
   const tbody=document.getElementById('btChecksBody');
@@ -2437,7 +2304,7 @@ function btLoadChecks(){
       <td>${c.photos&&c.photos.length?`<span class="badge badge-blue">${c.photos.length} 📷</span>`:'—'}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-blue btn-sm" onclick="btShowFullRapport('${c.id}')">📋 Rapport</button>
-        <button class="btn btn-ghost btn-sm" onclick="btShowHistory('vehicle','${c.vehicleId}','${(c.vehicle||c.vehicleId||'').replace(/'/g,"\\'")}');">Historik</button>
+        <button class="btn btn-ghost btn-sm" onclick="btShowHistory('vehicle','${c.vehicleId}','${(c.vehicle||c.vehicleId).replace(/'/g,"\\'")}')">Historik</button>
         <button class="btn btn-blue btn-sm" onclick="btEditCheck('${c.id}')">Rediger</button>
         <button class="btn btn-red btn-sm" onclick="btDeleteCheck('${c.id}')">Slet</button>
       </td>
@@ -2479,7 +2346,7 @@ function btShowHistory(type,id,label){
           ${h.mekanisk?`<div style="margin-top:6px;font-size:.85rem;color:var(--red)"><b>⚙️ Mekaniske problemer:</b> ${h.mekanisk}</div>`:''}
           ${(h.kmStand||h.kmService)?`<div style="margin-top:6px;font-size:.85rem;color:var(--text2)"><b>🔢 KM stand:</b> ${h.kmStand||'—'} &nbsp;|&nbsp; <b>🔧 KM til service:</b> ${h.kmService||'—'}${parseInt(h.kmService)<1000&&h.kmService?' <span style="color:#f59e0b;font-weight:700">⚠️ Service snart!</span>':''}</div>`:''}
           ${h.farligtgodsUdloeb?`<div style="margin-top:6px;font-size:.85rem;color:var(--text2)"><b>☢️ Farligtgods bevis udløber:</b> ${new Date(h.farligtgodsUdloeb).toLocaleDateString('da-DK')}</div>`:''}
-          ${h.photos&&h.photos.length?`<div style="margin-top:6px"><span class="badge badge-blue">📷 ${h.photos.length} billede${h.photos.length!==1?'r':''}</span></div>`:''}
+          ${h.photos&&h.photos.length?`<div style="margin-top:8px"><div class="bt-photo-grid">${h.photos.map(s=>`<div class="bt-photo-box"><img src="${s}"></div>`).join('')}</div></div>`:''}
         </div>`;
     }).join('');
   openModal('btHistoryModal');
@@ -2511,9 +2378,7 @@ function btNewCheckFromHistory(){
 }
 
 // Fuld rapport for ét biltjek
-let currentBtRapportId=null;
 function btShowFullRapport(id){
-  currentBtRapportId=id;
   const c=getData('checks').find(x=>x.id===id);
   if(!c){showToast('Biltjek ikke fundet','error');return;}
   const rapTitle=document.getElementById('btRapportTitle');
@@ -2601,13 +2466,11 @@ function btShowFullRapport(id){
     </div>`;
   }
 
-  // Billeder — vises IKKE inline (crasher mobil med gamle store fotos)
-  // De indlæses på klik via btLoadPhotos()
+  // Billeder
   if(c.photos&&c.photos.length){
-    html+=`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px" id="btPhotoSection">
+    html+=`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:8px">📷 BILLEDER (${c.photos.length})</div>
-      <button class="btn btn-blue btn-sm" onclick="btLoadPhotos('${c.id}')">Vis ${c.photos.length} billede${c.photos.length!==1?'r':''}</button>
-      <div id="btPhotoGrid" style="margin-top:10px"></div>
+      <div class="bt-photo-grid">${c.photos.map(s=>`<div class="bt-photo-box"><img src="${s}"></div>`).join('')}</div>
     </div>`;
   }
 
@@ -2626,80 +2489,56 @@ function btShowFullRapport(id){
   openModal('btRapportModal');
 }
 
-function btLoadPhotos(checkId){
-  const c=getData('checks').find(x=>x.id===checkId);
-  if(!c||!c.photos||!c.photos.length)return;
-  const grid=document.getElementById('btPhotoGrid');
-  const btn=grid?grid.previousElementSibling:null;
-  if(btn)btn.style.display='none';
-  if(!grid)return;
-  // Indsæt ét billede ad gangen med requestAnimationFrame for ikke at blokere UI
-  let i=0;
-  function addNext(){
-    if(i>=c.photos.length)return;
-    const div=document.createElement('div');
-    div.className='bt-photo-box';
-    const img=document.createElement('img');
-    img.src=c.photos[i];
-    img.style.cssText='width:100%;border-radius:4px;display:block';
-    div.appendChild(img);
-    grid.appendChild(div);
-    i++;
-    requestAnimationFrame(addNext);
-  }
-  grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px';
-  requestAnimationFrame(addNext);
-}
-
 function btPrintRapport(){
-  // Brug cache — getData kan returnere tom hvis Firebase ikke er synkroniseret
-  const c=getData('checks').find(x=>x.id===currentBtRapportId);
-  if(!c){showToast('Rapport data ikke fundet','error');return;}
-  const title='Biltjek Rapport — '+(c.vehicle||'')+' · '+(c.driver||'');
-  const lbl={'brandslukker':'Brandslukker','spildkit':'Spildkit','evotec_left':'Evotec venstre','evotec_right':'Evotec højre','motor_olie':'Motor olie','adblue':'AdBlue','uniform':'Uniform & sikkerhedssko','vest':'Vest','koerekort':'Kørekort','idkort':'ID-kort','vubkort':'VUB-kort','farligtgods':'Farligtgods bevis'};
-  const allC=Object.entries(c.checks||{});
-  const okC=allC.filter(([,v])=>v==='ok');
-  const nejC=allC.filter(([,v])=>v==='nej');
-  const hasIssues=nejC.length>0||(c.damages&&c.damages.length>0)||c.mekanisk;
-  let b='<p><b>Dato:</b> '+(c.date?new Date(c.date).toLocaleString('da-DK',{dateStyle:'long',timeStyle:'short'}):'—')+'</p>';
-  b+='<p><b>Bil:</b> '+(c.vehicle||'—')+'&nbsp;&nbsp;<b>Chauffør:</b> '+(c.driver||'—')+'&nbsp;&nbsp;<b>Type:</b> '+(c.biltype==='kassevogn'?'Kassevogn':'Sprinter')+'</p>';
-  if(c.kmStand)b+='<p><b>KM stand:</b> '+c.kmStand+'</p>';
-  if(c.kmService)b+='<p><b>KM til service:</b> '+c.kmService+(parseInt(c.kmService)<1000?' ⚠️ Service snart!':'')+'</p>';
-  if(nejC.length){b+='<h3 style="color:#b91c1c">⛔ Fejl og mangler ('+nejC.length+')</h3><ul>';nejC.forEach(([k])=>{b+='<li style="color:#b91c1c">'+(lbl[k]||k)+'</li>';});b+='</ul>';}
-  else{b+='<p style="color:#065f46">✅ Ingen udstyrsfejl</p>';}
-  if(c.damages&&c.damages.length){b+='<h3 style="color:#b91c1c">📍 Skader ('+c.damages.length+')</h3><ul>';c.damages.forEach((d,i)=>{b+='<li>Skade '+(i+1)+': '+d.desc+'</li>';});b+='</ul>';}
-  else{b+='<p style="color:#065f46">✅ Ingen skader</p>';}
-  if(c.mekanisk)b+='<h3 style="color:#b91c1c">⚙️ Mekaniske problemer</h3><p>'+c.mekanisk+'</p>';
-  if(okC.length)b+='<h3 style="color:#065f46">✅ OK punkter</h3><p>'+okC.map(([k])=>lbl[k]||k).join(', ')+'</p>';
-  if(c.condition)b+='<h3>Generel tilstand</h3><p>'+c.condition+'</p>';
-  if(c.photos&&c.photos.length){b+='<p><b>📷 Billeder:</b> '+c.photos.length+' billede'+(c.photos.length!==1?'r':'')+'</p>';}
-  b+='<div style="margin-top:20px;padding:12px;border:2px solid '+(hasIssues?'#b91c1c':'#065f46')+';border-radius:8px;text-align:center;font-weight:700;font-size:1.1rem;color:'+(hasIssues?'#b91c1c':'#065f46')+'">'+(hasIssues?'⚠️ HANDLING PÅKRÆVET':'✅ ALT OK — INGEN PROBLEMER')+'</div>';
-  const printHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:24px;color:#111}h1{border-bottom:2px solid #333;padding-bottom:8px}h3{margin-top:16px}ul{margin:4px 0}img{max-width:100%}</style></head><body><h1>'+title+'</h1>'+b+'</body></html>';
-  const blob=new Blob([printHtml],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),10000);
+  const content=document.getElementById('btRapportContent');
+  const title=document.getElementById('btRapportTitle').textContent;
+  if(!content){showToast('Intet indhold at printe','error');return;}
+
+  // Find the check data from the current rapport
+  const checkLabels={'brandslukker':'Brandslukker','spildkit':'Spildkit','evotec_left':'Evotec venstre','evotec_right':'Evotec højre','motor_olie':'Motor olie','adblue':'AdBlue','uniform':'Uniform & sikkerhedssko','vest':'Vest','koerekort':'Kørekort','idkort':'ID-kort','vubkort':'VUB-kort','farligtgods':'Farligtgods bevis'};
+
+  // Get current rapport ID from title — or just use the rendered content directly
+  // Build print-friendly HTML without CSS variables
+  const printArea=document.getElementById('btPrintArea');
+  
+  // Convert the modal content to print-safe HTML by replacing var() colors with real values
+  let html=content.innerHTML
+    .replace(/color:var\(--green\)/g,'color:#065f46')
+    .replace(/color:var\(--red\)/g,'color:#b91c1c')
+    .replace(/color:var\(--accent\)/g,'color:#e8a020')
+    .replace(/color:var\(--text\)/g,'color:#111')
+    .replace(/color:var\(--text2\)/g,'color:#555')
+    .replace(/color:var\(--text3\)/g,'color:#999')
+    .replace(/background:var\(--bg3\)/g,'background:#f5f5f5')
+    .replace(/background:rgba\(16,185,129,\.08\)/g,'background:#f0faf6')
+    .replace(/background:rgba\(239,68,68,\.08\)/g,'background:#fff5f5')
+    .replace(/background:rgba\(239,68,68,\.1\)/g,'background:#fff0f0')
+    .replace(/background:rgba\(16,185,129,\.1\)/g,'background:#f0fff6')
+    .replace(/border:1px solid var\(--border\)/g,'border:1px solid #ddd')
+    .replace(/border:1px solid rgba\(239,68,68,\.3\)/g,'border:1px solid #fca5a5')
+    .replace(/border:1px solid rgba\(16,185,129,\.3\)/g,'border:1px solid #6ee7b7')
+    .replace(/border:2px solid var\(--red\)/g,'border:2px solid #b91c1c')
+    .replace(/border:2px solid var\(--green\)/g,'border:2px solid #065f46')
+    .replace(/var\(--red\)/g,'#b91c1c')
+    .replace(/var\(--green\)/g,'#065f46')
+    .replace(/var\(--accent\)/g,'#e8a020')
+    .replace(/var\(--text\b\)/g,'#111')
+    .replace(/var\(--text2\)/g,'#555')
+    .replace(/var\(--bg3\)/g,'#f5f5f5');
+
+  printArea.innerHTML=`<h1 style="font-size:1.3rem;margin-bottom:16px;border-bottom:2px solid #333;padding-bottom:8px;">${title}</h1>${html}`;
+  
+  // Small delay to ensure DOM update, then print
+  setTimeout(()=>{
+    window.print();
+    // Clean up after print dialog
+    setTimeout(()=>{ printArea.innerHTML=''; }, 1000);
+  }, 100);
 }
 
 // ════════════════════════════════════════════════
 //  RAPPORT
 // ════════════════════════════════════════════════
-function printSkaderapport(){
-  const el=document.getElementById('rapportContent');
-  if(!el||!el.innerHTML){showToast('Ingen data at printe','error');return;}
-  const html=el.innerHTML
-    .replace(/var\(--red\)/g,'#b91c1c').replace(/var\(--green\)/g,'#065f46')
-    .replace(/var\(--accent\)/g,'#e8a020').replace(/var\(--text2\)/g,'#555')
-    .replace(/var\(--border\)/g,'#ddd').replace(/var\(--bg3\)/g,'#f5f5f5');
-  const sett=getData('settings',{});
-  const printHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;margin:20px;background:#fff;color:#111}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}.stat-card{background:#f5f5f5;border-radius:8px;padding:16px;text-align:center}.stat-num{font-size:2rem;font-weight:900}.stat-label{font-size:.8rem;color:#555;margin-top:4px}.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:12px}.card-title{font-weight:700;font-size:1rem;margin-bottom:12px}.rapport-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:700}.badge-red{background:#fee2e2;color:#b91c1c}.badge-yellow{background:#fef9c3;color:#92400e}</style></head><body><h1 style="border-bottom:2px solid #333;padding-bottom:8px">Skaderapport — '+(sett.name||'Udlejningsapp')+'</h1>'+html+'</body></html>';
-  const blob=new Blob([printHtml],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),10000);
-}
 function renderRapport(){
   const checks=getData('checks');
   const byDriver={};let totalDmg=0,totalIssues=0;
