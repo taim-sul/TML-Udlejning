@@ -2090,6 +2090,7 @@ function resetWizard(){
 //  MODAL
 // ════════════════════════════════════════════════
 function openModal(id){document.getElementById(id).classList.add('open');}
+
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))closeModal(e.target.id);});
 
@@ -2106,6 +2107,7 @@ function showToast(msg,type=''){
 //  BILTJEK — IMAGE CLICK DAMAGE
 // ════════════════════════════════════════════════
 let btCurrentDamages=[],btCurrentPhotos=[],btEditingId=null;
+let _btAllChecks=[]; // Cache — undgår gentagende localStorage-læsning
 let btPendingPin=null;
 let btChecks={};
 let btCurrentBiltype='kassevogn';
@@ -2383,6 +2385,7 @@ function btDeleteCheck(id){
 function btMigrateOldPhotos(){
   // Engangs-migration: komprimér store fotos i eksisterende biltjek
   const checks=getData('checks');
+  if(checks.length)_btAllChecks=checks; // Opdater cache mens vi er i gang
   let changed=false;
   const MAX=1200,Q=0.70;
   let pending=0;
@@ -2414,7 +2417,9 @@ function btMigrateOldPhotos(){
 
 function btLoadChecks(){
   const q=(document.getElementById('btSearch')||{}).value||'';
-  let list=getData('checks');
+  const allChecks=getData('checks');
+  _btAllChecks=allChecks; // Opdater global cache
+  let list=allChecks;
   if(q)list=list.filter(c=>JSON.stringify(c).toLowerCase().includes(q.toLowerCase()));
   list=list.slice().reverse();
   const tbody=document.getElementById('btChecksBody');
@@ -2432,7 +2437,7 @@ function btLoadChecks(){
       <td>${c.photos&&c.photos.length?`<span class="badge badge-blue">${c.photos.length} 📷</span>`:'—'}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn btn-blue btn-sm" onclick="btShowFullRapport('${c.id}')">📋 Rapport</button>
-        <button class="btn btn-ghost btn-sm" onclick="btShowHistory('vehicle','${c.vehicleId}','${(c.vehicle||c.vehicleId).replace(/'/g,"\\'")}')">Historik</button>
+        <button class="btn btn-ghost btn-sm" onclick="btShowHistory('vehicle','${c.vehicleId}','${(c.vehicle||c.vehicleId||'').replace(/'/g,"\\'")}');">Historik</button>
         <button class="btn btn-blue btn-sm" onclick="btEditCheck('${c.id}')">Rediger</button>
         <button class="btn btn-red btn-sm" onclick="btDeleteCheck('${c.id}')">Slet</button>
       </td>
@@ -2647,7 +2652,7 @@ function btLoadPhotos(checkId){
 }
 
 function btPrintRapport(){
-  // Byg direkte fra data - undgår at kopiere store base64 fra DOM
+  // Brug cache — getData kan returnere tom hvis Firebase ikke er synkroniseret
   const c=getData('checks').find(x=>x.id===currentBtRapportId);
   if(!c){showToast('Rapport data ikke fundet','error');return;}
   const title='Biltjek Rapport — '+(c.vehicle||'')+' · '+(c.driver||'');
